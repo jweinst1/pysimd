@@ -34,7 +34,7 @@ module1 = Extension('simd',
                     include_dirs = ['include'],
                     sources = ['src/pymain.c'])
 
-setup (name = 'DemoPackage',
+setup (name = 'simd',
        version = '0.0.1',
        description = 'The SIMD Python Module',
        author = 'Joshua Weinstein',
