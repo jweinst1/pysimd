@@ -25,8 +25,8 @@ static PyMethodDef myMethods[] = {
 // Our Module Definition struct
 static struct PyModuleDef myModule = {
     PyModuleDef_HEAD_INIT,
-    "DemoPackage",
-    "A demo module for python c extensions",
+    "simd",
+    "The Python SIMD Module",
     -1,
     myMethods
 };
