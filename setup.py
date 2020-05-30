@@ -15,7 +15,7 @@ keyword_list = [
 
 classifers_list = [
     'Development Status :: 2 - Pre-Alpha',
-    'Operating System :: OS Independent'
+    'Operating System :: OS Independent',
     'Programming Language :: C',
     'Programming Language :: Python',
     'Topic :: Scientific/Engineering',
