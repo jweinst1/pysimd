@@ -32,7 +32,7 @@ if os.name == 'nt':
 module1 = Extension('simd',
                     define_macros = macro_defs,
                     include_dirs = ['include'],
-                    sources = ['src/demo.c'])
+                    sources = ['src/pymain.c'])
 
 setup (name = 'DemoPackage',
        version = '0.0.1',
