@@ -1,6 +1,7 @@
 #ifndef CORE_SIMD_H
 #define CORE_SIMD_H
 
+
 #ifdef __GNUC__
 #  define PYSIMD_CC_GCC
 #endif // __GNUC__
@@ -26,11 +27,29 @@
 #   define PYSIMD_ARCH_UNKNOWN
 #endif
 
-#ifdef _WIN32
-#  define PYSIMD_CPUID(info, x)    __cpuidex(info, x, 0)
-#elif defined(PYSIMD_CC_GCC)
-#  include <cpuid.h>
-#  define PYSIMD_CPUID(info, x) __cpuid_count(x, 0, info[0], info[1], info[2], info[3])
+// Operating System Detection
+#if defined(_WIN32)
+#  define PYSIMD_OS_WINDOWS
+#elif defined(__linux__) || defined(linux) || defined(__linux)
+#  define PYSIMD_OS_LINUX
+#elif defined(macintosh) || defined(Macintosh) || (defined(__APPLE__) && defined(__MACH__))
+#  define PYSIMD_OS_MAC
+#else
+#  define PYSIMD_OS_UNKNOWN
+#endif
+
+//Mobile OS detection (android is shared wiht linux)
+#ifdef __ANDROID__
+#  define PYSIMD_OSM_ANDROID
+#endif // __ANDROID__
+
+#if defined(PYSIMD_ARCH_X86_64)
+#  if defined(PYSIMD_OS_WINDOWS)
+#    define PYSIMD_X86_CPUID(info, x)    __cpuidex(info, x, 0)
+#  elif defined(PYSIMD_CC_GCC)
+#    include <cpuid.h>
+#    define PYSIMD_X86_CPUID(info, x) __cpuid_count(x, 0, info[0], info[1], info[2], info[3])
+#  endif
 #endif
 
 enum pysimd_arch {
