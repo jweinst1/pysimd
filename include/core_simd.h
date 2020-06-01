@@ -80,6 +80,7 @@ static const char* pysimd_arch_stringify(enum pysimd_arch arch)
 }
 
 enum pysimd_cc {
+    PYSIMD_CC_TYPE_UNKNOWN,
     PYSIMD_CC_TYPE_GCC,
     PYSIMD_CC_TYPE_MSVC,
     PYSIMD_CC_TYPE_CLANG
@@ -106,6 +107,16 @@ static void pysimd_sys_info_init(struct pysimd_sys_info* sinfo)
        sinfo->arch = PYSIMD_ARCH_TYPE_SPARC;
     #else
        sinfo->arch = PYSIMD_ARCH_TYPE_UNKNOWN;
+    #endif
+    
+    #if defined(PYSIMD_CC_MSVC)
+       sinfo->compiler = PYSIMD_CC_TYPE_MSVC;
+    #elif defined(PYSIMD_CC_GCC)
+       sinfo->compiler = PYSIMD_CC_TYPE_GCC;
+    #elif defined(PYSIMD_CC_CLANG)
+       sinfo->compiler = PYSIMD_CC_TYPE_CLANG;
+    #else
+        sinfo->compiler = PYSIMD_CC_TYPE_UNKNOWN;
     #endif
 }
 
