@@ -1,10 +1,11 @@
-#include "core_simd.h"
+#include "core_simd_info.h"
 #include <Python.h>
 
 static PyObject* _system_info(PyObject* self, PyObject *args, PyObject *kwds)
 {
-    PyObject* info_dict;
-    PyObject* arch_str;
+    PyObject* info_dict = NULL;
+    PyObject* arch_str = NULL;
+    PyObject* cc_str = NULL;
     struct pysimd_sys_info sinfo;
     pysimd_sys_info_init(&sinfo);
     info_dict = PyDict_New();
@@ -17,13 +18,22 @@ static PyObject* _system_info(PyObject* self, PyObject *args, PyObject *kwds)
         goto DICT_ERRCLEAN;
     }
 
+    cc_str = PyUnicode_FromString(pysimd_cc_stringify(sinfo.compiler));
+    if (cc_str == NULL) {
+        goto DICT_ERRCLEAN;
+    }
+
     if (0 != PyDict_SetItemString(info_dict, "arch", arch_str)) {
+        goto DICT_ERRCLEAN;
+    }
+    if (0 != PyDict_SetItemString(info_dict, "compiler", cc_str)) {
         goto DICT_ERRCLEAN;
     }
     return info_dict;
 DICT_ERRCLEAN:
     Py_XDECREF(info_dict);
     Py_XDECREF(arch_str);
+    Py_XDECREF(cc_str);
     return NULL;
 }
 

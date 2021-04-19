@@ -86,6 +86,22 @@ enum pysimd_cc {
     PYSIMD_CC_TYPE_CLANG
 };
 
+static const char* pysimd_cc_stringify(enum pysimd_cc cc)
+{
+    static const char* pysimd_unknown = "unknown";
+    static const char* pysimd_gcc = "gcc";
+    static const char* pysimd_clang = "clang";
+    static const char* pysimd_msvc = "msvc";
+
+    switch (cc) {
+        case PYSIMD_CC_TYPE_GCC: return pysimd_gcc;
+        case PYSIMD_CC_TYPE_CLANG: return pysimd_clang;
+        case PYSIMD_CC_TYPE_MSVC: return pysimd_msvc;
+        default:
+            return pysimd_unknown;
+    }
+}
+
 struct pysimd_sys_info {
     enum pysimd_arch arch;
     enum pysimd_cc compiler;
