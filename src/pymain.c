@@ -6,6 +6,7 @@ static PyObject* _system_info(PyObject* self, PyObject *args, PyObject *kwds)
     PyObject* info_dict = NULL;
     PyObject* arch_str = NULL;
     PyObject* cc_str = NULL;
+    PyObject* features_dict = NULL;
     struct pysimd_sys_info sinfo;
     pysimd_sys_info_init(&sinfo);
     info_dict = PyDict_New();
@@ -29,11 +30,25 @@ static PyObject* _system_info(PyObject* self, PyObject *args, PyObject *kwds)
     if (0 != PyDict_SetItemString(info_dict, "compiler", cc_str)) {
         goto DICT_ERRCLEAN;
     }
+
+    features_dict = PyDict_New();
+    if (features_dict == NULL) {
+        goto DICT_ERRCLEAN;
+    }
+#ifdef PYSIMD_ARCH_X86_64
+    if (0 != PyDict_SetItemString(features_dict, "mmx", PyBool_FromLong(sinfo.features.mmx))) {
+        goto DICT_ERRCLEAN;
+    }
+#endif // PYSIMD_ARCH_X86_64
+    if (0 != PyDict_SetItemString(info_dict, "features", features_dict)) {
+        goto DICT_ERRCLEAN;
+    }
     return info_dict;
 DICT_ERRCLEAN:
     Py_XDECREF(info_dict);
     Py_XDECREF(arch_str);
     Py_XDECREF(cc_str);
+    Py_XDECREF(features_dict);
     return NULL;
 }
 
