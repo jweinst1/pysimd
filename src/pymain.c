@@ -27,22 +27,52 @@ static PyObject* _system_info(PyObject* self, PyObject *args, PyObject *kwds)
     if (0 != PyDict_SetItemString(info_dict, "arch", arch_str)) {
         goto DICT_ERRCLEAN;
     }
+    Py_DECREF(arch_str);
     if (0 != PyDict_SetItemString(info_dict, "compiler", cc_str)) {
         goto DICT_ERRCLEAN;
     }
+    Py_DECREF(cc_str);
 
     features_dict = PyDict_New();
     if (features_dict == NULL) {
         goto DICT_ERRCLEAN;
     }
 #ifdef PYSIMD_ARCH_X86_64
-    if (0 != PyDict_SetItemString(features_dict, "mmx", PyBool_FromLong(sinfo.features.mmx))) {
-        goto DICT_ERRCLEAN;
-    }
+    #define X86_PYDICT_SETTER(ftname) \
+         if (0 != PyDict_SetItemString(features_dict, #ftname, PyBool_FromLong(sinfo.features.ftname))) { \
+             goto DICT_ERRCLEAN; \
+        }                 
+    X86_PYDICT_SETTER(mmx)
+    X86_PYDICT_SETTER(popcnt)
+    X86_PYDICT_SETTER(sse)
+    X86_PYDICT_SETTER(sse2)
+    X86_PYDICT_SETTER(sse3)
+    X86_PYDICT_SETTER(ssse3)
+    X86_PYDICT_SETTER(sse41)
+    X86_PYDICT_SETTER(sse42)
+    X86_PYDICT_SETTER(sse4a)
+    X86_PYDICT_SETTER(avx)
+    X86_PYDICT_SETTER(avx2)
+    X86_PYDICT_SETTER(fma)
+    X86_PYDICT_SETTER(fma4)
+    X86_PYDICT_SETTER(xop)
+    X86_PYDICT_SETTER(bmi)
+    X86_PYDICT_SETTER(bmi2)
+    X86_PYDICT_SETTER(avx512f)
+    X86_PYDICT_SETTER(avx512vl)
+    X86_PYDICT_SETTER(avx512bw)
+    X86_PYDICT_SETTER(avx512dq)
+    X86_PYDICT_SETTER(avx512cd)
+    X86_PYDICT_SETTER(avx512pf)
+    X86_PYDICT_SETTER(avx512er)
+    X86_PYDICT_SETTER(avx512ifma)
+    X86_PYDICT_SETTER(avx512vbmi)
+    #undef X86_PYDICT_SETTER
 #endif // PYSIMD_ARCH_X86_64
     if (0 != PyDict_SetItemString(info_dict, "features", features_dict)) {
         goto DICT_ERRCLEAN;
     }
+    Py_DECREF(features_dict);
     return info_dict;
 DICT_ERRCLEAN:
     Py_XDECREF(info_dict);
