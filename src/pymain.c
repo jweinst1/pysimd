@@ -1,7 +1,88 @@
 #include "core_simd_info.h"
 #include <Python.h>
+#include "structmember.h"
 
-static PyObject* _system_info(PyObject* self, PyObject *args, PyObject *kwds)
+#define RETURN_OR_SYS_ERROR(variable) \
+    if (variable == NULL) { \
+        return PyErr_Format(PyExc_SystemError, "Internal object failure line: %u", __LINE__); \
+    }  \
+    return variable
+
+typedef struct {
+    PyObject_HEAD
+    size_t buff; // todo, replace object
+} SimdObject;
+
+extern PyTypeObject SimdObjectType;
+
+static void SimdObject_dealloc(SimdObject* self)
+{
+    self->buff = 0;
+    Py_TYPE(self)->tp_free((PyObject*)self);
+}
+
+static PyObject*
+SimdObject_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
+{
+    SimdObject *self;
+    self = (SimdObject*) type->tp_alloc(type, 0);
+    if (self != NULL) {
+        self->buff = 1;
+    }
+    return (PyObject *) self;
+}
+
+static int SimdObject_init(SimdObject* self, PyObject *args, PyObject *kwds)
+{
+    static char *kwlist[] = {"align", NULL};
+    Py_ssize_t param_align = 0;
+
+    if (!PyArg_ParseTupleAndKeywords(args, kwds, "n", kwlist,
+                                     &param_align))
+        return -1;
+    self->buff = (size_t)param_align;
+    return 0;
+}
+
+static PyObject* SimdObject_repr(SimdObject* self)
+{
+    PyObject* printed = NULL;
+    printed = PyUnicode_FromFormat("align: %zu", self->buff);
+    RETURN_OR_SYS_ERROR(printed);
+}
+
+static PyObject *
+SimdObject_alignment(SimdObject *self, PyObject *Py_UNUSED(ignored))
+{
+    PyObject* align_val = NULL;
+    align_val = PyLong_FromSize_t(self->buff);
+    RETURN_OR_SYS_ERROR(align_val);
+}
+
+
+static PyMethodDef SimdObject_methods[] = {
+    {"alignment", (PyCFunction) SimdObject_alignment, METH_NOARGS,
+     "Returns the alignment of the object"
+    },
+    {NULL}  /* Sentinel */
+};
+
+PyTypeObject SimdObjectType = {
+    PyVarObject_HEAD_INIT(NULL, 0)
+    .tp_name = "simd.Object",
+    .tp_doc = "An object containing simd data",
+    .tp_basicsize = sizeof(SimdObject),
+    .tp_itemsize = 0,
+    .tp_flags = Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,
+    .tp_new = SimdObject_new,
+    .tp_init = (initproc) SimdObject_init,
+    .tp_dealloc = (destructor) SimdObject_dealloc,
+    .tp_repr = (reprfunc) SimdObject_repr,
+    .tp_methods = SimdObject_methods,
+};
+
+
+static PyObject* _system_info(PyObject* self, PyObject *Py_UNUSED(ignored))
 {
     PyObject* info_dict = NULL;
     PyObject* arch_str = NULL;
@@ -82,15 +163,23 @@ DICT_ERRCLEAN:
     return NULL;
 }
 
+static PyObject* _simd_verion(PyObject* self, PyObject *Py_UNUSED(ignored))
+{
+    return Py_BuildValue("III", 0, 0, 1);
+}
+
 static PyMethodDef myMethods[] = {
-    { "system_info", (PyCFunction)_system_info, METH_VARARGS | METH_KEYWORDS, 
+    { "system_info", (PyCFunction)_system_info, METH_NOARGS, 
       "Returns a dictionary containing information on the system architecture and features." 
+    },
+    { "version", (PyCFunction)_simd_verion, METH_NOARGS, 
+      "Returns the version of pysimd." 
     },
     { NULL, NULL, 0, NULL }
 };
 
 // Our Module Definition struct
-static struct PyModuleDef myModule = {
+static struct PyModuleDef simdModule = {
     PyModuleDef_HEAD_INIT,
     "simd",
     "The Python SIMD Module",
@@ -101,5 +190,19 @@ static struct PyModuleDef myModule = {
 // Initializes our module using our above struct
 PyMODINIT_FUNC PyInit_simd(void)
 {
-    return PyModule_Create(&myModule);
+    PyObject *m;
+    if (PyType_Ready(&SimdObjectType) < 0)
+        return NULL;
+
+    m = PyModule_Create(&simdModule);
+    if (m == NULL)
+        return NULL;
+
+    Py_INCREF(&SimdObjectType);
+    if (PyModule_AddObject(m, "Object", (PyObject *) &SimdObjectType) < 0) {
+        Py_DECREF(&SimdObjectType);
+        Py_DECREF(m);
+        return NULL;
+    }
+    return m;
 }

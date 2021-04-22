@@ -55,6 +55,12 @@
 #    include <cpuid.h>
 #    define PYSIMD_X86_CPUID(info, x) __cpuid_count(x, 0, (info)[0], (info)[1], (info)[2], (info)[3])
 #  endif
+    // intrinsic headers
+#   if defined(PYSIMD_CC_GCC) || defined(PYSIMD_CC_CLANG)
+#      include <x86intrin.h>
+#   else // defined(PYSIMD_CC_GCC) || defined(PYSIMD_CC_CLANG)
+#      include <immintrin.h>
+#   endif // !defined(PYSIMD_CC_GCC) || defined(PYSIMD_CC_CLANG)
 #endif
 
 enum pysimd_arch {
