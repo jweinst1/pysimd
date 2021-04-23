@@ -25,29 +25,34 @@ class CheckCCompiles(object):
         self.source_code = source_code
         self.compiler = distutils.ccompiler.new_compiler()
         self.works = False
+        self.check()
         
-    def __enter__(self):
+    def check(self):
         self.file_name = create_file_with_rand_name(self.source_code)
         self.c_name = self.file_name + C_EXTENSION
         try:
             self.obj_names = self.compiler.compile([self.c_name])
         except Exception as exc:
             print("FAILED" + self.name + " compile check: " + str(exc))
-            return
+            return self.works
         try:
             self.compiler.link_executable(self.obj_names, self.file_name)
         except Exception as exc:
             print("FAILED " + self.name + " link check: " + str(exc))
-            return
+            return self.works
         self.works = True
         print("PASSED " + self.name)
-        return self
+        return self.works
         
-    def __exit__(self, exc_type, exc_value, traceback):
-        os.remove(self.c_name)
-        if os.name == 'nt':
-            os.remove(self.file_name + ".exe")
-        else:
-            os.remove(self.file_name)
-        for objfile in self.obj_names:
-            os.remove(objfile)
+    def __del__(self):
+        try:
+            os.remove(self.c_name)
+            if os.name == 'nt':
+                os.remove(self.file_name + ".exe")
+            else:
+                os.remove(self.file_name)
+            for objfile in self.obj_names:
+                os.remove(objfile)
+        except Exception as exc:
+            # Avoid noise for non existant files
+            return

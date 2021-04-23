@@ -1,6 +1,14 @@
 from distutils.core import setup, Extension
 import os
 
+pysimd_patch_version = 1
+pysimd_minor_version = 0
+pysimd_major_version = 0
+
+pysimd_version = [pysimd_major_version, 
+                  pysimd_minor_version, 
+                  pysimd_patch_version]
+
 keyword_list = [
     'simd',
     'x86',
@@ -35,7 +43,7 @@ module1 = Extension('simd',
                     sources = ['src/pymain.c'])
 
 setup (name = 'simd',
-       version = '0.0.1',
+       version = ".".join(pysimd_version),
        description = 'The SIMD Python Module',
        author = 'Joshua Weinstein',
        author_email = 'jweinst1@berkeley.edu',
