@@ -5,17 +5,16 @@
 
 struct pysimd_data_obj {
 	size_t alignment;
-	size_t len;
-	size_t cap;
+	size_t size;
 	uint8_t* data;
 };
 
-void pysimd_data_obj_init(pysimd_data_obj* obj, size_t align, size_t capac)
+void pysimd_data_obj_init(pysimd_data_obj* obj, size_t align, size_t size, void* data)
 {
 	obj->alignment = align;
-	obj->cap = capac;
-	obj->len = 0;
-	obj->data = calloc(1, capac);
+	obj->size = size;
+	obj->data = malloc(size);
+	// copying todo
 }
 
 #endif // SIMD_DATA_OBJECT_H
