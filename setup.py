@@ -30,7 +30,11 @@ classifers_list = [
     'Topic :: System :: Hardware'
 ]
 
-macro_defs = []
+macro_defs = [
+    ('SIMDPY_VERSION_MAJOR', str(pysimd_major_version)),
+    ('SIMDPY_VERSION_MINOR', str(pysimd_minor_version)),
+    ('SIMDPY_VERSION_PATCH', str(pysimd_patch_version))
+]
 
 if os.name == 'nt':
   macro_defs.append(('_CRT_SECURE_NO_WARNINGS', '1'))

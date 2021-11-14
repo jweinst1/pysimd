@@ -1,4 +1,6 @@
 #include "core_simd_info.h"
+#include "simd_vec.h"
+#define PY_SSIZE_T_CLEAN
 #include <Python.h>
 #include "structmember.h"
 
@@ -10,14 +12,14 @@
 
 typedef struct {
     PyObject_HEAD
-    size_t buff; // todo, replace object
+    struct pysimd_vec_t vec;
 } SimdObject;
 
 extern PyTypeObject SimdObjectType;
 
 static void SimdObject_dealloc(SimdObject* self)
 {
-    self->buff = 0;
+    pysimd_vec_deinit(&(self->vec));
     Py_TYPE(self)->tp_free((PyObject*)self);
 }
 
@@ -27,50 +29,51 @@ SimdObject_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
     SimdObject *self;
     self = (SimdObject*) type->tp_alloc(type, 0);
     if (self != NULL) {
-        self->buff = 1;
+        pysimd_vec_clear(&(self->vec));
     }
     return (PyObject *) self;
 }
 
 static int SimdObject_init(SimdObject* self, PyObject *args, PyObject *kwds)
 {
-    static char *kwlist[] = {"align", NULL};
-    Py_ssize_t param_align = 0;
+    static char *kwlist[] = {"capacity", NULL};
+    Py_ssize_t param_capacity = 0;
 
-    if (!PyArg_ParseTupleAndKeywords(args, kwds, "n", kwlist,
-                                     &param_align))
+    if (!PyArg_ParseTupleAndKeywords(args, kwds, "|n", kwlist,
+                                     &param_capacity))
         return -1;
-    self->buff = (size_t)param_align;
+    param_capacity = param_capacity == 0 ? /*default*/ 64 : param_capacity;
+    pysimd_vec_init(&(self->vec), (size_t)param_capacity);
     return 0;
 }
 
 static PyObject* SimdObject_repr(SimdObject* self)
 {
     PyObject* printed = NULL;
-    printed = PyUnicode_FromFormat("align: %zu", self->buff);
+    printed = PyUnicode_FromFormat("size: %zu, capacity: %zu", self->vec.len, self->vec.cap);
     RETURN_OR_SYS_ERROR(printed);
 }
 
 static PyObject *
-SimdObject_alignment(SimdObject *self, PyObject *Py_UNUSED(ignored))
+SimdObject_size(SimdObject *self, PyObject *Py_UNUSED(ignored))
 {
     PyObject* align_val = NULL;
-    align_val = PyLong_FromSize_t(self->buff);
+    align_val = PyLong_FromSize_t(self->vec.len);
     RETURN_OR_SYS_ERROR(align_val);
 }
 
 
 static PyMethodDef SimdObject_methods[] = {
-    {"alignment", (PyCFunction) SimdObject_alignment, METH_NOARGS,
-     "Returns the alignment of the object"
+    {"size", (PyCFunction) SimdObject_size, METH_NOARGS,
+     "Returns the current size of the vector"
     },
     {NULL}  /* Sentinel */
 };
 
 PyTypeObject SimdObjectType = {
     PyVarObject_HEAD_INIT(NULL, 0)
-    .tp_name = "simd.Object",
-    .tp_doc = "An object containing simd data",
+    .tp_name = "simd.Vec",
+    .tp_doc = "A vector containing simd data",
     .tp_basicsize = sizeof(SimdObject),
     .tp_itemsize = 0,
     .tp_flags = Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,
@@ -199,7 +202,7 @@ PyMODINIT_FUNC PyInit_simd(void)
         return NULL;
 
     Py_INCREF(&SimdObjectType);
-    if (PyModule_AddObject(m, "Object", (PyObject *) &SimdObjectType) < 0) {
+    if (PyModule_AddObject(m, "Vec", (PyObject *) &SimdObjectType) < 0) {
         Py_DECREF(&SimdObjectType);
         Py_DECREF(m);
         return NULL;
