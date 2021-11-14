@@ -43,7 +43,7 @@ module1 = Extension('simd',
                     sources = ['src/pymain.c'])
 
 setup (name = 'simd',
-       version = ".".join(pysimd_version),
+       version = ".".join([str(elem) for elem in pysimd_version]),
        description = 'The SIMD Python Module',
        author = 'Joshua Weinstein',
        author_email = 'jweinst1@berkeley.edu',
