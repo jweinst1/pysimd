@@ -16,6 +16,7 @@ typedef struct {
 } SimdObject;
 
 extern PyTypeObject SimdObjectType;
+static PyObject *SimdError;
 
 static void SimdObject_dealloc(SimdObject* self)
 {
@@ -50,22 +51,49 @@ static int SimdObject_init(SimdObject* self, PyObject *args, PyObject *kwds)
 static PyObject* SimdObject_repr(SimdObject* self)
 {
     PyObject* printed = NULL;
-    printed = PyUnicode_FromFormat("size: %zu, capacity: %zu", self->vec.len, self->vec.cap);
+    printed = PyUnicode_FromFormat("{\"size\": %zu, \"capacity\": %zu}", self->vec.len, self->vec.cap);
     RETURN_OR_SYS_ERROR(printed);
 }
 
 static PyObject *
 SimdObject_size(SimdObject *self, PyObject *Py_UNUSED(ignored))
 {
-    PyObject* align_val = NULL;
-    align_val = PyLong_FromSize_t(self->vec.len);
-    RETURN_OR_SYS_ERROR(align_val);
+    PyObject* size_val = NULL;
+    size_val = PyLong_FromSize_t(self->vec.len);
+    RETURN_OR_SYS_ERROR(size_val);
+}
+
+static PyObject *
+SimdObject_capacity(SimdObject *self, PyObject *Py_UNUSED(ignored))
+{
+    PyObject* cap_val = NULL;
+    cap_val = PyLong_FromSize_t(self->vec.cap);
+    RETURN_OR_SYS_ERROR(cap_val);
+}
+
+static PyObject*
+SimdObject_append(SimdObject *self, PyObject *args, PyObject *kwargs)
+{
+    //Py_ssize_t input_value = 0;
+    if (PyTuple_Size(args) != 1) {
+        PyErr_SetString(SimdError, "'append' only takes one argument");
+        return NULL;
+    }
+    //pysimd_vec_push(self->vec, &input_value, used_width);
+    Py_INCREF(Py_None);
+    return Py_None;
 }
 
 
 static PyMethodDef SimdObject_methods[] = {
     {"size", (PyCFunction) SimdObject_size, METH_NOARGS,
      "Returns the current size of the vector"
+    },
+    {"capacity", (PyCFunction) SimdObject_capacity, METH_NOARGS,
+     "Returns the current capacity of the vector"
+    },
+    {"append", (PyCFunction) SimdObject_append, METH_VARARGS | METH_KEYWORDS,
+    "Adds data to the end of the vector"
     },
     {NULL}  /* Sentinel */
 };
@@ -207,5 +235,16 @@ PyMODINIT_FUNC PyInit_simd(void)
         Py_DECREF(m);
         return NULL;
     }
+
+    SimdError = PyErr_NewException("simd.SimdError", NULL, NULL);
+    Py_XINCREF(SimdError);
+    if (PyModule_AddObject(m, "error", SimdError) < 0) {
+        Py_XDECREF(SimdError);
+        Py_CLEAR(SimdError);
+        Py_DECREF(&SimdObjectType);
+        Py_DECREF(m);
+        return NULL;
+    }
+
     return m;
 }
