@@ -43,6 +43,10 @@ static int SimdObject_init(SimdObject* self, PyObject *args, PyObject *kwds)
     if (!PyArg_ParseTupleAndKeywords(args, kwds, "|n", kwlist,
                                      &param_capacity))
         return -1;
+    if (param_capacity > 0 && param_capacity % 16 != 0) {
+        PyErr_Format(SimdError, "The capacity '%zu' cannot be aligned by at least 16 bytes", param_capacity);
+        return -1;
+    }
     param_capacity = param_capacity == 0 ? /*default*/ 64 : param_capacity;
     pysimd_vec_init(&(self->vec), (size_t)param_capacity);
     return 0;

@@ -55,7 +55,7 @@ with CheckCCompiles("sse2", x86_header_string + """
 
 """) as sse2_test:
   if sse2_test:
-    macro_defs.append(('SIMD_SSE2', '1'))
+    macro_defs.append(('PYSIMD_X86_SSE2', '1'))
 
 
 if os.name == 'nt':
