@@ -1,5 +1,6 @@
 from distutils.core import setup, Extension
 import os
+from check_c_compiles import CheckCCompiles
 
 pysimd_patch_version = 1
 pysimd_minor_version = 0
@@ -35,6 +36,27 @@ macro_defs = [
     ('SIMDPY_VERSION_MINOR', str(pysimd_minor_version)),
     ('SIMDPY_VERSION_PATCH', str(pysimd_patch_version))
 ]
+
+x86_header_string = """
+   #ifdef _WIN32
+   #  include <immintrin.h>
+   #else
+   #  include <x86intrin.h>
+   #endif
+"""
+
+with CheckCCompiles("sse2", x86_header_string + """
+   int main(void) {
+    __m128i foo = _mm_set1_epi8(8);
+    __m128i new_vec = _mm_add_epi8(foo, _mm_setzero_si128());
+    (void)new_vec;
+    return 0;
+}
+
+""") as sse2_test:
+  if sse2_test:
+    macro_defs.append(('SIMD_SSE2', '1'))
+
 
 if os.name == 'nt':
   macro_defs.append(('_CRT_SECURE_NO_WARNINGS', '1'))

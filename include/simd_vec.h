@@ -1,13 +1,7 @@
 #ifndef SIMD_VEC_H
 #define SIMD_VEC_H
 
-#include "core_simd_info.h"
-
-struct pysimd_vec_t {
-	size_t len;
-	size_t cap;
-	uint8_t* data;
-};
+#include "simd_vec_type.h"
 
 static inline void pysimd_vec_clear(struct pysimd_vec_t* vec) {
 	vec->len = 0;
@@ -19,7 +13,7 @@ void pysimd_vec_init(struct pysimd_vec_t* buf, size_t capacity)
 {
 	buf->len = 0;
 	buf->cap = capacity;
-	buf->data = malloc(capacity);
+	buf->data = calloc(1, capacity);
 }
 
 static inline size_t pysimd_vec_grow(struct pysimd_vec_t* buf)

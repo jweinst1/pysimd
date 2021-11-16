@@ -25,9 +25,8 @@ class CheckCCompiles(object):
         self.source_code = source_code
         self.compiler = distutils.ccompiler.new_compiler()
         self.works = False
-        self.check()
         
-    def check(self):
+    def __enter__(self):
         self.file_name = create_file_with_rand_name(self.source_code)
         self.c_name = self.file_name + C_EXTENSION
         try:
@@ -44,7 +43,7 @@ class CheckCCompiles(object):
         print("PASSED " + self.name)
         return self.works
         
-    def __del__(self):
+    def __exit__(self, exc_type, exc_val, exc_tb):
         try:
             os.remove(self.c_name)
             if os.name == 'nt':
