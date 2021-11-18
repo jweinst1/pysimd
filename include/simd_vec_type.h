@@ -4,8 +4,7 @@
 #include "core_simd_info.h"
 
 struct pysimd_vec_t {
-	size_t len;
-	size_t cap;
+	size_t size;
 	uint8_t* data;
 };
 
