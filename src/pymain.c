@@ -55,12 +55,12 @@ static int SimdObject_init(SimdObject* self, PyObject *args, PyObject *kwds)
 static PyObject* SimdObject_repr(SimdObject* self)
 {
     PyObject* printed = NULL;
-    printed = PyUnicode_FromFormat("{\"size\": %zu, \"capacity\": %zu}", self->vec.len, self->vec.cap);
+    printed = PyUnicode_FromFormat("{\"length\": %zu, \"capacity\": %zu}", self->vec.len, self->vec.cap);
     RETURN_OR_SYS_ERROR(printed);
 }
 
 static PyObject *
-SimdObject_size(SimdObject *self, PyObject *Py_UNUSED(ignored))
+SimdObject_length(SimdObject *self, PyObject *Py_UNUSED(ignored))
 {
     PyObject* size_val = NULL;
     size_val = PyLong_FromSize_t(self->vec.len);
@@ -73,6 +73,26 @@ SimdObject_capacity(SimdObject *self, PyObject *Py_UNUSED(ignored))
     PyObject* cap_val = NULL;
     cap_val = PyLong_FromSize_t(self->vec.cap);
     RETURN_OR_SYS_ERROR(cap_val);
+}
+
+static PyObject*
+SimdObject_resize(SimdObject *self, PyObject *args, PyObject *kwargs)
+{
+    Py_ssize_t resize_to = 0;
+    PyObject* size_val = NULL;
+    if (!PyArg_ParseTuple(args, "n", &resize_to)) {
+        return NULL;
+    }
+    if (resize_to == 0) {
+        PyErr_SetString(SimdError, "vector cannot be resized to 0");
+        return NULL;
+    } else if (resize_to % 16 != 0) {
+        PyErr_SetString(SimdError, "vector can only be resized to 16-byte aligned capacity");
+        return NULL;
+    }
+    pysimd_vec_resize(&self->vec, (size_t)resize_to);
+    size_val = PyLong_FromSize_t(self->vec.cap);
+    RETURN_OR_SYS_ERROR(size_val);
 }
 
 static PyObject*
@@ -119,14 +139,17 @@ SimdObject_append(SimdObject *self, PyObject *args, PyObject *kwargs)
 
 
 static PyMethodDef SimdObject_methods[] = {
-    {"size", (PyCFunction) SimdObject_size, METH_NOARGS,
-     "Returns the current size of the vector"
+    {"length", (PyCFunction) SimdObject_length, METH_NOARGS,
+     "Returns the current length of the vector"
     },
     {"capacity", (PyCFunction) SimdObject_capacity, METH_NOARGS,
      "Returns the current capacity of the vector"
     },
     {"append", (PyCFunction) SimdObject_append, METH_VARARGS | METH_KEYWORDS,
     "Adds data to the end of the vector"
+    },
+    {"resize", (PyCFunction) SimdObject_resize, METH_VARARGS | METH_KEYWORDS,
+    "Resizes the vector to the desired capacity"
     },
     {NULL}  /* Sentinel */
 };
