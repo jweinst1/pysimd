@@ -1,5 +1,6 @@
 #include "core_simd_info.h"
 #include "simd_vec.h"
+#include "simd_vec_arith.h"
 #define PY_SSIZE_T_CLEAN
 #include <Python.h>
 #include "structmember.h"
@@ -53,7 +54,7 @@ static int SimdObject_init(SimdObject* self, PyObject *args, PyObject *kwds)
     pysimd_vec_init(&(self->vec), (size_t)param_size);
     if (param_rep_val != 0 && param_rep_size != 0) {
         if (!pysimd_vec_fill(&(self->vec), param_rep_val, param_rep_size)) {
-            PyErr_Format(SimdError, "Invalid fill parameters, value: %zu, size: %u", (size_t)param_rep_val, param_rep_size);
+            PyErr_Format(SimdError, "Invalid repeat parameters, value: %zu, size: %u", (size_t)param_rep_val, param_rep_size);
             return -1;
         }
     }
@@ -62,8 +63,10 @@ static int SimdObject_init(SimdObject* self, PyObject *args, PyObject *kwds)
 
 static PyObject* SimdObject_repr(SimdObject* self)
 {
+    char* representation = pysimd_vec_repr(&(self->vec));
     PyObject* printed = NULL;
-    printed = PyUnicode_FromFormat("{\"size\": %zu}", self->vec.size);
+    printed = PyUnicode_FromString(representation);
+    free(representation);
     RETURN_OR_SYS_ERROR(printed);
 }
 
@@ -137,6 +140,35 @@ SimdObject_append(SimdObject *self, PyObject *args, PyObject *kwargs)
     return Py_None;
 }*/
 
+static PyObject*
+SimdObject_add(SimdObject *self, PyObject *args, PyObject *kwargs)
+{
+    static char *kwlist[] = {"other", "width", NULL};
+    Py_ssize_t param_width = 0;
+    PyObject* param_other = NULL;
+    if (!PyArg_ParseTupleAndKeywords(args, kwargs, "On", kwlist,
+                                     &param_other, &param_width)) {
+        return NULL;
+    }
+
+    if (param_other->ob_type != &SimdObjectType) {
+        PyErr_Format(SimdError, "Expected vector, got type '%s'", param_other->ob_type->tp_name);
+        return NULL;
+    }
+
+    switch (param_width) {
+        case 1:
+        case 8:
+            // Account for "one" byte or "8 bits"
+            simd_vec_add_i8(&(self->vec), &(((SimdObject*)param_other)->vec));
+            break;
+        default:
+            PyErr_Format(SimdError, "Unrecognized width: %zu for add operation", (size_t)param_width);
+            return NULL;
+    }
+    Py_INCREF(Py_None);
+    return Py_None;
+}
 
 static PyMethodDef SimdObject_methods[] = {
     {"size", (PyCFunction) SimdObject_size, METH_NOARGS,
@@ -144,6 +176,9 @@ static PyMethodDef SimdObject_methods[] = {
     },
     {"resize", (PyCFunction) SimdObject_resize, METH_VARARGS | METH_KEYWORDS,
     "Resizes the vector to the desired capacity"
+    },
+    {"add", (PyCFunction) SimdObject_add, METH_VARARGS | METH_KEYWORDS,
+    "Adds a vector into another vector, without creating a new vector"
     },
     {NULL}  /* Sentinel */
 };

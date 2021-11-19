@@ -17,8 +17,13 @@ static void pysimd_vec_init(struct pysimd_vec_t* buf, size_t capacity)
 static int pysimd_vec_resize(struct pysimd_vec_t* buf, size_t new_size) {
 	if (new_size == 0)
 		return 0;
+	size_t old_size = buf->size;
 	buf->size = new_size;
 	buf->data = realloc(buf->data, new_size);
+	while (old_size < new_size) {
+		// Must make sure upstream is zeroed
+		buf->data[old_size++] = 0;
+	}
 	return 1;
 }
 
@@ -26,6 +31,22 @@ static void pysimd_vec_deinit(struct pysimd_vec_t* buf)
 {
 	buf->size = 0;
 	free(buf->data);
+}
+
+static char* pysimd_vec_repr(const struct pysimd_vec_t* buf)
+{
+	char* repr_str = calloc(1, buf->size * 4 + 2);
+	char* writer = repr_str;
+	*writer++ = '[';
+	size_t i = 0;
+	for (; i < buf->size; ++i)
+	{
+		writer += sprintf(writer, "%x", buf->data[i]);
+		if (i != (buf->size - 1))
+			*writer++ = ',';
+	}
+	*writer++ = ']';
+	return repr_str;
 }
 
 static int pysimd_vec_fill(struct pysimd_vec_t* buf, size_t val, unsigned char sizer)
