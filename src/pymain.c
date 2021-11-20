@@ -132,6 +132,10 @@ SimdObject_add(SimdObject *self, PyObject *args, PyObject *kwargs)
             // Account for "one" byte or "8 bits"
             simd_vec_add_i8(&(self->vec), &(((SimdObject*)param_other)->vec));
             break;
+        case 2:
+        case 16:
+            simd_vec_add_i16(&(self->vec), &(((SimdObject*)param_other)->vec));
+            break;
         default:
             PyErr_Format(SimdError, "Unrecognized width: %zu for add operation", (size_t)param_width);
             return NULL;

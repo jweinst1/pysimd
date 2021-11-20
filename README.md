@@ -3,7 +3,7 @@
 `simd` is the python module for SIMD computing and programming. It prodives an extensive interface
 to SIMD instruction sets on several different architectures, and fallback scalar implementations when no SIMD instructions are available for a particular operation. `simd` provides vector objects, which are collections of bytes aligned on a minimum boundary. The main advantage of using SIMD instructions is the potentially masive performance improvements over regular, scalar instructions.
 
-`simd` is a C extension, that is only compatible with Python 3. When built, it will do compile time checks to see what SIMD instructions are available on the current CPU. 
+`simd` is a C extension, that is only compatible with Python 3. When built, it will do compile time checks to see what SIMD instructions are available on the current CPU. The advantage of using `simd` over other libraries or implementations is this module auto-detects the best instructions available for specific operations at install time and uses them anytime the module is imported into a Python program.
 
 ## Installation
 

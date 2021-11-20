@@ -37,6 +37,9 @@ macro_defs = [
     ('SIMDPY_VERSION_PATCH', str(pysimd_patch_version))
 ]
 
+# extra_compile_args
+compiler_flags = []
+
 x86_header_string = """
    #ifdef _WIN32
    #  include <immintrin.h>
