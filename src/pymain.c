@@ -109,48 +109,6 @@ SimdObject_resize(SimdObject *self, PyObject *args, PyObject *kwargs)
     size_val = PyLong_FromSize_t(self->vec.size);
     RETURN_OR_SYS_ERROR(size_val);
 }
-/*
-static PyObject*
-SimdObject_append(SimdObject *self, PyObject *args, PyObject *kwargs)
-{
-    size_t width_to_use = 0;
-    if (kwargs != NULL) {
-        PyObject* width_arg = PyDict_GetItemString(kwargs, "width");
-        if (width_arg != NULL) {
-            if (!PyLong_Check(width_arg)) {
-                PyErr_Format(SimdError, "The 'width' option expected an integer, got type '%s'", width_arg->ob_type->tp_name);
-                return NULL;
-            }
-            width_to_use = PyLong_AsSize_t(width_arg);
-            if (width_to_use == ((size_t)-1)) {
-                // overflow
-                return NULL;
-            }
-            else if (width_to_use < 1 || width_to_use > 8) {
-                PyErr_Format(SimdError, "The 'width' option must be between 1 and 8, got '%zu'", width_to_use);
-                return NULL;
-            }
-        }
-    }
-    // default to full size_t
-    width_to_use = width_to_use == 0 ? sizeof(size_t) : width_to_use;
-    Py_ssize_t i = 0;
-    Py_ssize_t end = PyTuple_Size(args);
-    for (;i < end; ++i) {
-        PyObject* current = PyTuple_GET_ITEM(args, i);
-        if (PyLong_Check(current)) {
-            size_t value = PyLong_AsSize_t(current);
-            pysimd_vec_push(&(self->vec), &value, width_to_use);
-        } else {
-            // err handle
-            PyErr_Format(SimdError, "The type '%s' is not supported for append", current->ob_type->tp_name);
-            return NULL;
-        }
-    }
-    //pysimd_vec_push(self->vec, &input_value, used_width);
-    Py_INCREF(Py_None);
-    return Py_None;
-}*/
 
 static PyObject*
 SimdObject_add(SimdObject *self, PyObject *args, PyObject *kwargs)

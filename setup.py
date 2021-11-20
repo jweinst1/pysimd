@@ -2,7 +2,7 @@ from distutils.core import setup, Extension
 import os
 from check_c_compiles import CheckCCompiles
 
-pysimd_patch_version = 1
+pysimd_patch_version = 2
 pysimd_minor_version = 0
 pysimd_major_version = 0
 
