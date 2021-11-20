@@ -43,7 +43,7 @@ However, if a size used cannot be aligned by 16 bytes, an error is thrown
 ```py
 >>> a = simd.Vec(size=31, repeat_value=64, repeat_size=2)
 Traceback (most recent call last):
-  File "<stdin>", line 1, in <module>
+File "<stdin>", line 1, in <module>
 simd.SimdError: The size '31' cannot be aligned by at least 16 bytes
 ```
 
