@@ -109,4 +109,61 @@ static int pysimd_vec_fill(struct pysimd_vec_t* buf, size_t val, unsigned char s
 	return 1;
 }
 
+static int pysimd_vec_fill_float(struct pysimd_vec_t* buf, double val, unsigned char sizer) {
+	unsigned char* data_ptr = buf->data;
+	const unsigned char* data_end = buf->data + buf->size;
+#if defined(PYSIMD_X86_SSE2)
+	switch (sizer) {
+		case 4:
+		    {
+		    	__m128 filler = _mm_set1_ps((float)val);
+				while (data_ptr < data_end) {
+					_mm_store_ps((float*)data_ptr, filler);
+					data_ptr += 16;
+				}
+		    }
+		    break;
+		case 8:
+		    {
+		    	__m128d filler = _mm_set1_pd(val);
+				while (data_ptr < data_end) {
+					_mm_store_pd((double*)data_ptr, filler);
+					data_ptr += 16;
+				}
+		    }
+		    break;
+		default:
+		    return 0;
+	}
+#else
+	switch (sizer) {
+		case 4:
+		    {
+		    	float filler = (float)val;
+		    	while (data_ptr < data_end) {
+					*(float*)(data_ptr) = filler;
+					*(float*)(data_ptr + 4) = filler;
+					*(float*)(data_ptr + 8) = filler;
+					*(float*)(data_ptr + 12) = filler;
+					data_ptr += 16;
+				}
+		    }
+		    break;
+		case 8:
+		    {
+		    	double filler = val;
+		    	while (data_ptr < data_end) {
+					*(double*)(data_ptr) = filler;
+					*(double*)(data_ptr + 8) = filler;
+					data_ptr += 16;
+				}
+		    }
+		    break;
+		default:
+		    return 0;
+	}
+#endif
+	return 1;
+}
+
 #endif // SIMD_DATA_OBJECT_H

@@ -40,10 +40,10 @@ static int SimdObject_init(SimdObject* self, PyObject *args, PyObject *kwds)
 {
     static char *kwlist[] = {"size", "repeat_value", "repeat_size", NULL};
     Py_ssize_t param_size = 0;
-    Py_ssize_t param_rep_val = 0;
+    PyObject* param_rep_val = NULL;
     unsigned char param_rep_size = 0;
 
-    if (!PyArg_ParseTupleAndKeywords(args, kwds, "|nnb", kwlist,
+    if (!PyArg_ParseTupleAndKeywords(args, kwds, "|nOb", kwlist,
                                      &param_size, &param_rep_val, &param_rep_size))
         return -1;
     if (param_size > 0 && param_size % 16 != 0) {
@@ -52,9 +52,21 @@ static int SimdObject_init(SimdObject* self, PyObject *args, PyObject *kwds)
     }
     param_size = param_size == 0 ? /*default*/ 64 : param_size;
     pysimd_vec_init(&(self->vec), (size_t)param_size);
-    if (param_rep_val != 0 && param_rep_size != 0) {
-        if (!pysimd_vec_fill(&(self->vec), param_rep_val, param_rep_size)) {
-            PyErr_Format(SimdError, "Invalid repeat parameters, value: %zu, size: %u", (size_t)param_rep_val, param_rep_size);
+    if (param_rep_val != NULL && param_rep_size != 0) {
+        if (PyLong_Check(param_rep_val)) {
+            size_t rep_value = PyLong_AsSize_t(param_rep_val);
+            if (!pysimd_vec_fill(&(self->vec), rep_value, param_rep_size)) {
+                PyErr_Format(SimdError, "Invalid repeat parameters, value: %zu, size: %u", rep_value, param_rep_size);
+                return -1;
+            }
+        } else if (PyFloat_Check(param_rep_val)) {
+            double rep_value = PyFloat_AsDouble(param_rep_val);
+            if (!pysimd_vec_fill_float(&(self->vec), rep_value, param_rep_size)) {
+                PyErr_Format(SimdError, "Invalid repeat parameters, value: %f, size: %u", rep_value, param_rep_size);
+                return -1;
+            }
+        } else {
+            PyErr_Format(SimdError, "The type '%s' is not supported for 'repeat_value' option", param_rep_val->ob_type->tp_name);
             return -1;
         }
     }
