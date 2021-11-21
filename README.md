@@ -62,3 +62,19 @@ The `simd` module supports a wide variety of operations, such as plain addition:
 >>> a
 [2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2]
 ```
+
+There are also operations to retrieve the data in the vector back as python types, such as with `as_bytes()`
+
+```py
+>>> a = simd.Vec(size=16, repeat_value=4, repeat_size=2)
+>>> a
+[4,0,4,0,4,0,4,0,4,0,4,0,4,0,4,0]
+>>> a.as_bytes(start = 3)
+b'\x00\x04\x00\x04\x00\x04\x00\x04\x00\x04\x00\x04\x00'
+>>> a.as_bytes()
+b'\x04\x00\x04\x00\x04\x00\x04\x00\x04\x00\x04\x00\x04\x00\x04\x00'
+>>> a.as_bytes(start=40)
+Traceback (most recent call last):
+  File "<stdin>", line 1, in <module>
+simd.SimdError: start: '40', is out of bounds for vector of size 16
+```

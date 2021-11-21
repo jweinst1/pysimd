@@ -5,7 +5,7 @@ from check_c_compiles import CheckCCompiles
 
 DEFAULT_COMPILER = get_default_compiler()
 
-pysimd_patch_version = 2
+pysimd_patch_version = 3
 pysimd_minor_version = 0
 pysimd_major_version = 0
 
@@ -98,6 +98,10 @@ with CheckCCompiles("ssse3", x86_header_string + """
 
 if os.name == 'nt':
   macro_defs.append(('_CRT_SECURE_NO_WARNINGS', '1'))
+
+if DEFAULT_COMPILER == 'unix':
+  # shut off not so useful warnings
+  compiler_flags.append('-Wno-sign-compare')
 
 # A Python package may have multiple extensions, but this
 # template has one.

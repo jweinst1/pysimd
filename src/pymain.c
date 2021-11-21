@@ -128,17 +128,16 @@ SimdObject_add(SimdObject *self, PyObject *args, PyObject *kwargs)
 
     switch (param_width) {
         case 1:
-        case 8:
-            // Account for "one" byte or "8 bits"
             simd_vec_add_i8(&(self->vec), &(((SimdObject*)param_other)->vec));
             break;
         case 2:
-        case 16:
             simd_vec_add_i16(&(self->vec), &(((SimdObject*)param_other)->vec));
             break;
         case 4:
-        case 32:
             simd_vec_add_i32(&(self->vec), &(((SimdObject*)param_other)->vec));
+            break;
+        case 8:
+            simd_vec_add_i64(&(self->vec), &(((SimdObject*)param_other)->vec));
             break;
         default:
             PyErr_Format(SimdError, "Unrecognized width: %zu for add operation", (size_t)param_width);
@@ -146,6 +145,41 @@ SimdObject_add(SimdObject *self, PyObject *args, PyObject *kwargs)
     }
     Py_INCREF(Py_None);
     return Py_None;
+}
+
+static PyObject*
+SimdObject_as_bytes(SimdObject *self, PyObject *args, PyObject *kwargs)
+{
+    static char *kwlist[] = {"start", "end", NULL};
+    Py_ssize_t param_start = 0;
+    Py_ssize_t param_end = 0;
+    size_t actual_start = 0;
+    size_t actual_end = self->vec.size;
+    PyObject* bytes_made = NULL;
+    if (!PyArg_ParseTupleAndKeywords(args, kwargs, "|nn", kwlist,
+                                     &param_start, &param_end)) {
+        return NULL;
+    }
+
+    if (param_start != 0) {
+        if (param_start > self->vec.size || param_start < 0) {
+            PyErr_Format(SimdError, "start: '%ld', is out of bounds for vector of size %zu", param_start, self->vec.size);
+            return NULL;
+        }
+        actual_start = (size_t)param_start;
+    }
+
+    if (param_end != 0) {
+        if (param_end > self->vec.size || param_end < 0) {
+            PyErr_Format(SimdError, "end: '%ld', is out of bounds for vector of size %zu", param_end, self->vec.size);
+            return NULL;
+        }
+        actual_end = (size_t)param_end;
+    }
+
+    bytes_made = PyBytes_FromStringAndSize((const char*)self->vec.data +  actual_start, actual_end - actual_start);
+    RETURN_OR_SYS_ERROR(bytes_made);
+
 }
 
 static PyMethodDef SimdObject_methods[] = {
@@ -157,6 +191,9 @@ static PyMethodDef SimdObject_methods[] = {
     },
     {"add", (PyCFunction) SimdObject_add, METH_VARARGS | METH_KEYWORDS,
     "Adds a vector into another vector, without creating a new vector"
+    },
+    {"as_bytes", (PyCFunction) SimdObject_as_bytes, METH_VARARGS | METH_KEYWORDS,
+    "Returns a bytes object representing the internal bytes of the vector"
     },
     {NULL}  /* Sentinel */
 };
