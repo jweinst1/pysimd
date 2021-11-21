@@ -120,6 +120,5 @@ setup (name = 'simd',
        license = 'MIT',
        keywords = keyword_list,
        classifiers = classifers_list,
-       long_description_content_type='text/markdown',
-       long_description = open('README.md').read(),
+       long_description = open('README.rst').read(),
        ext_modules = [module1])
