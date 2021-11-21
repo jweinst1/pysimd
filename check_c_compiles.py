@@ -32,7 +32,7 @@ class CheckCCompiles(object):
         try:
             self.obj_names = self.compiler.compile([self.c_name])
         except Exception as exc:
-            print("FAILED" + self.name + " compile check: " + str(exc))
+            print("FAILED " + self.name + " compile check: " + str(exc))
             return self.works
         try:
             self.compiler.link_executable(self.obj_names, self.file_name)
