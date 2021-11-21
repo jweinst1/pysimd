@@ -1,12 +1,11 @@
 PySIMD
 ======
 
-| ``simd`` is the python module for SIMD computing and programming. It
-prodives an extensive interface
-| to SIMD instruction sets on several different architectures, and
-fallback scalar implementations when no SIMD instructions are available
-for a particular operation. ``simd`` provides vector objects, which are
-collections of bytes aligned on a minimum boundary. The main advantage
+``simd`` is the python module for SIMD computing and programming. It
+prodives an extensive interface to SIMD instruction sets on several different 
+architectures, and fallback scalar implementations when no SIMD instructions 
+are available for a particular operation. ``simd`` provides vector objects, 
+which are collections of bytes aligned on a minimum boundary. The main advantage
 of using SIMD instructions is the potentially masive performance
 improvements over regular, scalar instructions.
 

@@ -1,4 +1,4 @@
 graft include
-include README.md
+include README.rst
 include LICENSE.txt
 include check_c_compiles.py
