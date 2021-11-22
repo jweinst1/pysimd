@@ -49,6 +49,32 @@ static char* pysimd_vec_repr(const struct pysimd_vec_t* buf)
 	return repr_str;
 }
 
+static int pysimd_vec_copy(struct pysimd_vec_t* dst, 
+	                        const struct pysimd_vec_t* src,
+	                        size_t start,
+	                        size_t end)
+{
+	size_t diff = end - start;
+	if (diff % 16 != 0)
+		return 0;
+	pysimd_vec_init(dst, diff);
+	const unsigned char* reader = src->data + start;
+	const unsigned char* read_end = src->data + end;
+	unsigned char* writer = dst->data;
+	while (reader < read_end) {
+#if defined(PYSIMD_X86_SSE2)
+		_mm_store_si128((__m128i*)writer, _mm_load_si128((__m128i const*)reader));
+		reader += 16;
+		writer += 16;
+#else
+		*(long long*)writer = *(long long*)reader;
+		writer += sizeof(long long);
+		reader += sizeof(long long);
+#endif
+	}
+	return 1;
+}
+
 static int pysimd_vec_fill(struct pysimd_vec_t* buf, size_t val, unsigned char sizer)
 {
 	unsigned char* data_ptr = buf->data;

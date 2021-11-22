@@ -73,6 +73,54 @@ static int SimdObject_init(SimdObject* self, PyObject *args, PyObject *kwds)
     return 0;
 }
 
+static PyObject*
+SimdObject_copy(SimdObject *self, PyObject *args, PyObject *kwargs)
+{
+    static char *kwlist[] = {"start", "end", NULL};
+    Py_ssize_t param_start = -1;
+    Py_ssize_t param_end = -1;
+    size_t actual_start = 0;
+    size_t actual_end = self->vec.size;
+    PyObject* copied = NULL;
+    if (!PyArg_ParseTupleAndKeywords(args, kwargs, "|nn", kwlist,
+                                     &param_start, &param_end)) {
+        return NULL;
+    }
+
+    if (param_start > -1) {
+        if (param_start >= self->vec.size) {
+            PyErr_Format(SimdError, "'start' option: %ld is out of bounds", param_start);
+            return NULL;
+        }
+        actual_start = (size_t)param_start;
+    }
+
+    if (param_end > -1) {
+        if (param_end >= self->vec.size || param_end <= param_start) {
+            PyErr_Format(SimdError, "'end' option: %ld is out of bounds", param_start);
+            return NULL;
+        }
+        actual_end = (size_t)param_end;
+    }
+
+    // Alignment check
+    if ((actual_end - actual_start) % 16 != 0) {
+        PyErr_Format(SimdError, "requested copy size: %zu is not aligned on a 16 byte boundary", actual_end - actual_start);
+        return NULL;
+    }
+    copied = SimdObjectType.tp_alloc(&SimdObjectType, 0);
+    if (copied == NULL) {
+        PyErr_Format(PyExc_SystemError, "Internal object failure line: %u", __LINE__);
+        return NULL;
+    }
+    if (!pysimd_vec_copy( &((SimdObject*)copied)->vec, &self->vec, actual_start, actual_end)) {
+        PyErr_SetString(SimdError, "Internal vector copy failure");
+        SimdObject_dealloc((SimdObject*)copied);
+        return NULL;
+    }
+    return copied;
+}
+
 static PyObject* SimdObject_repr(SimdObject* self)
 {
     char* representation = pysimd_vec_repr(&(self->vec));
@@ -194,6 +242,9 @@ static PyMethodDef SimdObject_methods[] = {
     },
     {"as_bytes", (PyCFunction) SimdObject_as_bytes, METH_VARARGS | METH_KEYWORDS,
     "Returns a bytes object representing the internal bytes of the vector"
+    },
+    {"copy", (PyCFunction) SimdObject_copy, METH_VARARGS | METH_KEYWORDS,
+    "Returns a copy of the vector"
     },
     {NULL}  /* Sentinel */
 };
