@@ -61,3 +61,24 @@ for cfile in current_dir_cfiles:
 	py3_embed_cc.link_executable(obj_file, library_dirs=[cc_lib_dirs], libraries=[cc_libs], 
 		                         output_progname=built_name)
 	built_tests.append(built_name)
+
+# Run the tests
+tests_passed = []
+tests_failed = []
+
+for cmdtest in built_tests:
+	try:
+		result = subprocess.run(cmdtest, check=False, timeout=600)
+		if result.returncode == 0:
+			tests_passed.append(cmdtest)
+		else:
+			print("Test {} FAILED with return_code {}".format(cmdtest, str(result.returncode)))
+			tests_failed.append(cmdtest)
+	except subprocess.TimeoutExpired as exc:
+		print("Test {} FAILED due to timeout error: {}".format(cmdtest, str(exc)))
+		tests_failed.append(cmdtest)
+	except Exception as exc:
+		print("Test {} FAILED due to error: {}".format(cmdtest, str(exc)))
+		tests_failed.append(cmdtest)
+
+print("{} tests failed out of {} total tests".format(len(tests_failed), len(built_tests)))
