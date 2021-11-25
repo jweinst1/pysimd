@@ -348,6 +348,7 @@ DICT_ERRCLEAN:
 static PyObject* _simd_verion(PyObject* self, PyObject *Py_UNUSED(ignored))
 {
     return Py_BuildValue("III", 0, 0, 1);
+    
 }
 
 static PyMethodDef myMethods[] = {
