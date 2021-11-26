@@ -1,5 +1,7 @@
+global-exclude *.py[cod]
 graft include
-graft tests
+include tests/*.py
+include tests/*.c
 include README.rst
 include LICENSE.txt
 include check_c_compiles.py
