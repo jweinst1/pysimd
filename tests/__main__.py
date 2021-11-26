@@ -81,4 +81,6 @@ for cmdtest in built_tests:
 		print("Test {} FAILED due to error: {}".format(cmdtest, str(exc)))
 		tests_failed.append(cmdtest)
 
+print("------------------------------------------------------")
 print("{} tests failed out of {} total tests".format(len(tests_failed), len(built_tests)))
+print("------------------------------------------------------")
