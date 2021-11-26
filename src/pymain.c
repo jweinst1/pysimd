@@ -329,7 +329,18 @@ SimdObject_as_bytes(SimdObject *self, PyObject *args, PyObject *kwargs)
 
 }
 
+static PyObject *
+SimdObject_clear(SimdObject *self, PyObject *Py_UNUSED(ignored))
+{
+    pysimd_vec_clear_data(&(self->vec));
+    Py_INCREF(Py_None);
+    return Py_None;
+}
+
 static PyMethodDef SimdObject_methods[] = {
+    {"clear", (PyCFunction) SimdObject_clear, METH_NOARGS,
+     "Sets all bytes in the vector to 0"
+    },
     {"size", (PyCFunction) SimdObject_size, METH_NOARGS,
      "Returns the current size of the vector"
     },

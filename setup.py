@@ -5,7 +5,7 @@ from check_c_compiles import CheckCCompiles
 
 DEFAULT_COMPILER = get_default_compiler()
 
-pysimd_patch_version = 3
+pysimd_patch_version = 4
 pysimd_minor_version = 0
 pysimd_major_version = 0
 

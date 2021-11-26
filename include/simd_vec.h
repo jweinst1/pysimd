@@ -8,6 +8,14 @@ static inline void pysimd_vec_clear(struct pysimd_vec_t* vec) {
 	vec->data = NULL;
 }
 
+static inline void pysimd_vec_clear_data(struct pysimd_vec_t* vec) {
+	unsigned char* cleaner = vec->data;
+	const unsigned char* end = cleaner + vec->size;
+	while (cleaner != end) {
+		*cleaner++ = 0;
+	}
+}
+
 static void pysimd_vec_init(struct pysimd_vec_t* buf, size_t capacity)
 {
 	buf->size = capacity;

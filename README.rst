@@ -25,6 +25,17 @@ To install ``simd``, run the following ``pip`` command
 
     $ pip install simd
 
+Tests
+-----
+
+To run the tests, run the following command
+
+::
+
+    $ python tests
+
+This will build the ``.c`` test files , link the python library into each one, and run them.
+
 Usage
 -----
 
