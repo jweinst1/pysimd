@@ -1,6 +1,8 @@
 #define PY_SSIZE_T_CLEAN
 #include <Python.h>
 
+#define TARGET_SIZE 128
+
 static const char* EXT_MOD_NAME = "simd";
 static const char* VEC_TYPE = "Vec";
 static const char* SIZE_FUNC = "size";
@@ -14,7 +16,8 @@ static inline void print_and_dec(PyObject* obj, const char* label)
 int
 main(int argc, char *argv[])
 {
-	PyObject* pModule, *pVecType, *pNewed, *pSized, *pFName;
+	PyObject *pModule, *pVecType, *pNewed, *pSized, *pFName, *pArgs;
+	PyObject *pInitArg;
 	Py_Initialize();
     PyObject * sys_path = PySys_GetObject("path");
     PyList_Append(sys_path, PyUnicode_FromString(TESTING_BIN_PATH));
@@ -23,7 +26,14 @@ main(int argc, char *argv[])
     if (pModule != NULL) {
     	pVecType = PyObject_GetAttrString(pModule, VEC_TYPE);
     	if (pVecType != NULL) {
-    		pNewed = PyType_GenericNew((PyTypeObject*)pVecType, NULL, NULL);
+    		pArgs = PyTuple_New(1);
+    		pInitArg = PyLong_FromSize_t(TARGET_SIZE);
+    		if (pArgs == NULL || pInitArg == NULL) {
+    			Py_FatalError("Cannot initialize single argument list, something is really wrong");
+    		}
+    		PyTuple_SetItem(pArgs, 0, pInitArg);
+    		pNewed = PyObject_CallObject(pVecType, pArgs);
+    		Py_DECREF(pArgs);
     		if (pNewed != NULL) {
     			pFName = PyUnicode_FromString(SIZE_FUNC);
     			if (pFName != NULL) {
@@ -37,6 +47,10 @@ main(int argc, char *argv[])
     						print_and_dec(pNewed, "Vec obj");
     						print_and_dec(pVecType, "Vec type");
     						print_and_dec(pModule, "simd mod");
+    						if (oSize != TARGET_SIZE) {
+    							fprintf(stderr, "Expected size to be %zu\n", (size_t)TARGET_SIZE);
+    							return 1;
+    						}
     					} else {
     						PyErr_Print();
     						print_and_dec(pSized, "size of vec");
@@ -44,6 +58,7 @@ main(int argc, char *argv[])
     						print_and_dec(pNewed, "Vec obj");
     						print_and_dec(pVecType, "Vec type");
     						print_and_dec(pModule, "simd mod");
+    						return 1;
     					}
     				} else {
     					PyErr_Print();
@@ -51,24 +66,29 @@ main(int argc, char *argv[])
 						print_and_dec(pNewed, "Vec obj");
 						print_and_dec(pVecType, "Vec type");
 						print_and_dec(pModule, "simd mod");
+						return 1;
     				}
     			} else {
     				PyErr_Print();
 					print_and_dec(pNewed, "Vec obj");
 					print_and_dec(pVecType, "Vec type");
 					print_and_dec(pModule, "simd mod");
+					return 1;
     			} 
     		} else {
     			PyErr_Print();
 				print_and_dec(pVecType, "Vec type");
 				print_and_dec(pModule, "simd mod");
+				return 1;
     		}
     	} else {
     		PyErr_Print();
 			print_and_dec(pModule, "simd mod");
+			return 1;
     	}
     } else {
     	PyErr_Print();
+    	return 1;
     }
 
     if (Py_FinalizeEx() < 0) {
@@ -76,3 +96,5 @@ main(int argc, char *argv[])
     }
 	return 0;
 }
+
+#undef TARGET_SIZE
