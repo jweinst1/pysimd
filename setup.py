@@ -60,7 +60,7 @@ with CheckCCompiles("sse2", x86_header_string + """
 }
 
 """) as sse2_test:
-  if sse2_test:
+  if sse2_test.works:
     macro_defs.append(('PYSIMD_X86_SSE2', '1'))
 
 with CheckCCompiles("sse3", x86_header_string + """
@@ -72,7 +72,7 @@ with CheckCCompiles("sse3", x86_header_string + """
     return 0;
 }
 """) as sse3_test:
-  if sse3_test:
+  if sse3_test.works:
     macro_defs.append(('PYSIMD_X86_SSE3', '1'))
     if DEFAULT_COMPILER == 'unix':
       compiler_flags.append('-msse3')
@@ -91,10 +91,29 @@ with CheckCCompiles("ssse3", x86_header_string + """
     return 0;
 } 
 """) as ssse3_test:
-  if ssse3_test:
+  if ssse3_test.works:
     macro_defs.append(('PYSIMD_X86_SSSE3', '1'))
     if DEFAULT_COMPILER == 'unix':
       compiler_flags.append('-mssse3')
+
+with CheckCCompiles("avx512f", x86_header_string + """
+
+#include <stdio.h>
+
+static char storedata[256];
+
+int main(void) {
+    __m512i a = _mm512_set1_epi16(3);
+    __m512i b = _mm512_set1_epi16(3);
+    __m512i added =  _mm512_add_epi32(a, b);
+    _mm512_store_si512((void*)storedata, added);
+    return 0;
+} 
+""") as ssse3_test:
+  if ssse3_test.works:
+    macro_defs.append(('PYSIMD_X86_AVX512F', '1'))
+    if DEFAULT_COMPILER == 'unix':
+      compiler_flags.append('-mavx512f')
 
 if os.name == 'nt':
   macro_defs.append(('_CRT_SECURE_NO_WARNINGS', '1'))
