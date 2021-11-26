@@ -196,6 +196,105 @@ SimdObject_add(SimdObject *self, PyObject *args, PyObject *kwargs)
 }
 
 static PyObject*
+SimdObject_fadd(SimdObject *self, PyObject *args, PyObject *kwargs)
+{
+    static char *kwlist[] = {"other", "width", NULL};
+    Py_ssize_t param_width = 0;
+    PyObject* param_other = NULL;
+    if (!PyArg_ParseTupleAndKeywords(args, kwargs, "On", kwlist,
+                                     &param_other, &param_width)) {
+        return NULL;
+    }
+
+    if (param_other->ob_type != &SimdObjectType) {
+        PyErr_Format(SimdError, "Expected vector, got type '%s'", param_other->ob_type->tp_name);
+        return NULL;
+    }
+
+    switch (param_width) {
+        case 4:
+            simd_vec_add_f32(&(self->vec), &(((SimdObject*)param_other)->vec));
+            break;
+        case 8:
+            simd_vec_add_f64(&(self->vec), &(((SimdObject*)param_other)->vec));
+            break;
+        default:
+            PyErr_Format(SimdError, "Unrecognized width: %zu for fadd operation", (size_t)param_width);
+            return NULL;
+    }
+    Py_INCREF(Py_None);
+    return Py_None;
+}
+
+static PyObject*
+SimdObject_sub(SimdObject *self, PyObject *args, PyObject *kwargs)
+{
+    static char *kwlist[] = {"other", "width", NULL};
+    Py_ssize_t param_width = 0;
+    PyObject* param_other = NULL;
+    if (!PyArg_ParseTupleAndKeywords(args, kwargs, "On", kwlist,
+                                     &param_other, &param_width)) {
+        return NULL;
+    }
+
+    if (param_other->ob_type != &SimdObjectType) {
+        PyErr_Format(SimdError, "Expected vector, got type '%s'", param_other->ob_type->tp_name);
+        return NULL;
+    }
+
+    switch (param_width) {
+        case 1:
+            simd_vec_sub_i8(&(self->vec), &(((SimdObject*)param_other)->vec));
+            break;
+        case 2:
+            simd_vec_sub_i16(&(self->vec), &(((SimdObject*)param_other)->vec));
+            break;
+        case 4:
+            simd_vec_sub_i32(&(self->vec), &(((SimdObject*)param_other)->vec));
+            break;
+        case 8:
+            simd_vec_sub_i64(&(self->vec), &(((SimdObject*)param_other)->vec));
+            break;
+        default:
+            PyErr_Format(SimdError, "Unrecognized width: %zu for sub operation", (size_t)param_width);
+            return NULL;
+    }
+    Py_INCREF(Py_None);
+    return Py_None;
+}
+
+static PyObject*
+SimdObject_fsub(SimdObject *self, PyObject *args, PyObject *kwargs)
+{
+    static char *kwlist[] = {"other", "width", NULL};
+    Py_ssize_t param_width = 0;
+    PyObject* param_other = NULL;
+    if (!PyArg_ParseTupleAndKeywords(args, kwargs, "On", kwlist,
+                                     &param_other, &param_width)) {
+        return NULL;
+    }
+
+    if (param_other->ob_type != &SimdObjectType) {
+        PyErr_Format(SimdError, "Expected vector, got type '%s'", param_other->ob_type->tp_name);
+        return NULL;
+    }
+
+    switch (param_width) {
+        case 4:
+            simd_vec_sub_f32(&(self->vec), &(((SimdObject*)param_other)->vec));
+            break;
+        case 8:
+            simd_vec_sub_f64(&(self->vec), &(((SimdObject*)param_other)->vec));
+            break;
+        default:
+            PyErr_Format(SimdError, "Unrecognized width: %zu for fsub operation", (size_t)param_width);
+            return NULL;
+    }
+    Py_INCREF(Py_None);
+    return Py_None;
+}
+
+static PyObject*
 SimdObject_as_bytes(SimdObject *self, PyObject *args, PyObject *kwargs)
 {
     static char *kwlist[] = {"start", "end", NULL};
@@ -239,6 +338,15 @@ static PyMethodDef SimdObject_methods[] = {
     },
     {"add", (PyCFunction) SimdObject_add, METH_VARARGS | METH_KEYWORDS,
     "Adds a vector into another vector, without creating a new vector"
+    },
+    {"fadd", (PyCFunction) SimdObject_fadd, METH_VARARGS | METH_KEYWORDS,
+    "Adds a vector into another vector as floating point numbers"
+    },
+    {"sub", (PyCFunction) SimdObject_sub, METH_VARARGS | METH_KEYWORDS,
+    "Subtracts a vector from another vector, without creating a new vector"
+    },
+    {"fsub", (PyCFunction) SimdObject_fsub, METH_VARARGS | METH_KEYWORDS,
+    "Subtracts a vector from another vector as floating point numbers"
     },
     {"as_bytes", (PyCFunction) SimdObject_as_bytes, METH_VARARGS | METH_KEYWORDS,
     "Returns a bytes object representing the internal bytes of the vector"
@@ -348,7 +456,7 @@ DICT_ERRCLEAN:
 static PyObject* _simd_verion(PyObject* self, PyObject *Py_UNUSED(ignored))
 {
     return Py_BuildValue("III", 0, 0, 1);
-    
+
 }
 
 static PyMethodDef myMethods[] = {
