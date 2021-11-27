@@ -1,6 +1,7 @@
 #include "core_simd_info.h"
 #include "simd_vec.h"
 #include "simd_vec_arith.h"
+#include "simd_vec_filter.h"
 #define PY_SSIZE_T_CLEAN
 #include <Python.h>
 #include "structmember.h"
@@ -329,6 +330,114 @@ SimdObject_as_bytes(SimdObject *self, PyObject *args, PyObject *kwargs)
 
 }
 
+static PyObject*
+SimdObject_as_tuple(SimdObject *self, PyObject *args, PyObject *kwargs)
+{
+    static char *kwlist[] = {"type", "width", NULL};
+    PyObject* tuple_to_give = NULL;
+    PyObject* param_type = NULL;
+    Py_ssize_t param_width = 0;
+    if (!PyArg_ParseTupleAndKeywords(args, kwargs, "On", kwlist,
+                                     &param_type, &param_width)) {
+        return NULL;
+    }
+
+    size_t actual_width = (size_t)param_width;
+    if (actual_width != 1 && actual_width != 2 && actual_width != 4 && actual_width != 8) {
+        PyErr_Format(SimdError, "The width '%zu' is not supported for method 'as_tuple'", actual_width);
+        return NULL;
+    }
+    size_t n_members = self->vec.size / actual_width;
+    tuple_to_give = PyTuple_New(n_members);
+
+    if ((PyTypeObject*)param_type == &PyLong_Type) {
+        if (actual_width == 1) {
+            char* reader = (char*)(self->vec.data);
+            for (size_t i = 0; i < n_members; ++i) {
+                PyObject* to_put = PyLong_FromLong(reader[i]);
+                if (to_put == NULL) {
+                    Py_DECREF(tuple_to_give);
+                    PyErr_Format(PyExc_SystemError, "Internal object failure line: %u", __LINE__);
+                    return NULL;
+                }
+                PyTuple_SET_ITEM(tuple_to_give, i, to_put);
+            }
+        } else if (actual_width == 2) {
+            short* reader = (short*)(self->vec.data);
+            for (size_t i = 0; i < n_members; ++i) {
+                PyObject* to_put = PyLong_FromLong(reader[i]);
+                if (to_put == NULL) {
+                    Py_DECREF(tuple_to_give);
+                    PyErr_Format(PyExc_SystemError, "Internal object failure line: %u", __LINE__);
+                    return NULL;
+                }
+                PyTuple_SET_ITEM(tuple_to_give, i, to_put);
+            }
+        } else if (actual_width == 4) {
+            int* reader = (int*)(self->vec.data);
+            for (size_t i = 0; i < n_members; ++i) {
+                PyObject* to_put = PyLong_FromLong(reader[i]);
+                if (to_put == NULL) {
+                    Py_DECREF(tuple_to_give);
+                    PyErr_Format(PyExc_SystemError, "Internal object failure line: %u", __LINE__);
+                    return NULL;
+                }
+                PyTuple_SET_ITEM(tuple_to_give, i, to_put);
+            }
+        } else if (actual_width == 8) {
+            long long* reader = (long long*)(self->vec.data);
+            for (size_t i = 0; i < n_members; ++i) {
+                PyObject* to_put = PyLong_FromLongLong(reader[i]);
+                if (to_put == NULL) {
+                    Py_DECREF(tuple_to_give);
+                    PyErr_Format(PyExc_SystemError, "Internal object failure line: %u", __LINE__);
+                    return NULL;
+                }
+                PyTuple_SET_ITEM(tuple_to_give, i, to_put);
+            }
+        } else {
+            Py_FatalError("Should not reach this point in 'as_tuple', width error");
+        }
+    } else if ((PyTypeObject*)param_type == &PyFloat_Type) {
+        if (actual_width == 4) {
+            float* reader = (float*)(self->vec.data);
+            for (size_t i = 0; i < n_members; ++i) {
+                PyObject* to_put = PyFloat_FromDouble((double)reader[i]);
+                if (to_put == NULL) {
+                    Py_DECREF(tuple_to_give);
+                    PyErr_Format(PyExc_SystemError, "Internal object failure line: %u", __LINE__);
+                    return NULL;
+                }
+                PyTuple_SET_ITEM(tuple_to_give, i, to_put);
+            }
+        } else if (actual_width == 8) {
+            double* reader = (double*)(self->vec.data);
+            for (size_t i = 0; i < n_members; ++i) {
+                PyObject* to_put = PyFloat_FromDouble(reader[i]);
+                if (to_put == NULL) {
+                    Py_DECREF(tuple_to_give);
+                    PyErr_Format(PyExc_SystemError, "Internal object failure line: %u", __LINE__);
+                    return NULL;
+                }
+                PyTuple_SET_ITEM(tuple_to_give, i, to_put);
+            }
+        } else {
+            if (actual_width == 1 || actual_width == 2) {
+                PyErr_Format(SimdError, "The width '%zu' is not supported for floats for 'as_tuple'", actual_width);
+                Py_DECREF(tuple_to_give);
+                return NULL;
+            } else {
+                Py_FatalError("Should not reach invalid state for float in 'as_tuple");
+            }
+        }
+    } else {
+        Py_DECREF(tuple_to_give);
+        PyErr_Format(SimdError, "The type '%s' is not supported for method 'as_tuple'", param_type->ob_type->tp_name);
+        return NULL;
+    }
+    return tuple_to_give;
+}
+
 static PyObject *
 SimdObject_clear(SimdObject *self, PyObject *Py_UNUSED(ignored))
 {
@@ -361,6 +470,9 @@ static PyMethodDef SimdObject_methods[] = {
     },
     {"as_bytes", (PyCFunction) SimdObject_as_bytes, METH_VARARGS | METH_KEYWORDS,
     "Returns a bytes object representing the internal bytes of the vector"
+    },
+    {"as_tuple", (PyCFunction) SimdObject_as_tuple, METH_VARARGS | METH_KEYWORDS,
+    "Returns a tuple populated with members of the vector, defaults to 32 bit integers"
     },
     {"copy", (PyCFunction) SimdObject_copy, METH_VARARGS | METH_KEYWORDS,
     "Returns a copy of the vector"

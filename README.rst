@@ -113,3 +113,19 @@ python types, such as with ``as_bytes()``
       File "<stdin>", line 1, in <module>
     simd.SimdError: start: '40', is out of bounds for vector of size 16
 
+The data inside a vector can also be retrieved as a collection type, like a ``tuple`` , 
+
+.. code:: py
+
+    >>> a = simd.Vec(size=32, repeat_value=5, repeat_size=4)
+    >>> a
+    [5,0,0,0,5,0,0,0,5,0,0,0,5,0,0,0,5,0,0,0,5,0,0,0,5,0,0,0,5,0,0,0]
+    >>> a.as_tuple(type=int, width=4)
+    (5, 5, 5, 5, 5, 5, 5, 5)
+    >>> a.as_tuple(type=int, width=1)
+    (5, 0, 0, 0, 5, 0, 0, 0, 5, 0, 0, 0, 5, 0, 0, 0, 5, 0, 0, 0, 5, 0, 0, 0, 5, 0, 0, 0, 5, 0, 0, 0)
+    >>> a.as_tuple(type=int, width=8)
+    (21474836485, 21474836485, 21474836485, 21474836485)
+
+The above example shows the pure ``__repr__`` method of ``Vec`` only depicts a hexadecimal, byte level representation of the vector data, but a method like ``as_tuple`` allows the viewing of data with different types. One unique aspect of the ``simd`` module is it treats data and memory similar to that of C, where a chunk of 16 bytes could be two 64 bit integers, four 32 bit integers, and so on.
+

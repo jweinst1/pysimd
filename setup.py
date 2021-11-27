@@ -5,6 +5,11 @@ from check_c_compiles import CheckCCompiles
 
 DEFAULT_COMPILER = get_default_compiler()
 
+# This attribute determines the minimum alignment required by sizes of a simd.Vec object
+# The intention is that, the minimum allows any simd instruction available to be executed
+# on vector object without needing to check the length/size of it
+pysimd_minimum_align = 8
+
 pysimd_patch_version = 4
 pysimd_minor_version = 0
 pysimd_major_version = 0
@@ -62,6 +67,7 @@ with CheckCCompiles("sse2", x86_header_string + """
 """) as sse2_test:
   if sse2_test.works:
     macro_defs.append(('PYSIMD_X86_SSE2', '1'))
+    pysimd_minimum_align = 16
 
 with CheckCCompiles("sse3", x86_header_string + """
    int main(void) {
@@ -108,6 +114,7 @@ int main(void) {
 """) as avx_test:
   if avx_test.works:
     macro_defs.append(('PYSIMD_X86_AVX', '1'))
+    pysimd_minimum_align = 32
     if DEFAULT_COMPILER == 'unix':
       compiler_flags.append('-mavx')
 
@@ -123,6 +130,7 @@ int main(void) {
 """) as avx2_test:
   if avx2_test.works:
     macro_defs.append(('PYSIMD_X86_AVX2', '1'))
+    pysimd_minimum_align = 32
     if DEFAULT_COMPILER == 'unix':
       compiler_flags.append('-mavx2')
 
@@ -142,8 +150,11 @@ int main(void) {
 """) as avx512f_test:
   if avx512f_test.works:
     macro_defs.append(('PYSIMD_X86_AVX512F', '1'))
+    pysimd_minimum_align = 64
     if DEFAULT_COMPILER == 'unix':
       compiler_flags.append('-mavx512f')
+
+macro_defs.append(('PYSIMD_MIN_ALIGN', str(pysimd_minimum_align)))
 
 if os.name == 'nt':
   macro_defs.append(('_CRT_SECURE_NO_WARNINGS', '1'))
