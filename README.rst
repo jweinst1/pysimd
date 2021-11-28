@@ -1,6 +1,10 @@
 PySIMD
 ======
 
+.. image:: images/pysimd.png
+  :width: 800
+  :alt: PySimd logo
+
 ``simd`` is the python module for SIMD computing and programming. It
 prodives an extensive interface to SIMD instruction sets on several different 
 architectures, and fallback scalar implementations when no SIMD instructions 
@@ -128,4 +132,27 @@ The data inside a vector can also be retrieved as a collection type, like a ``tu
     (21474836485, 21474836485, 21474836485, 21474836485)
 
 The above example shows the pure ``__repr__`` method of ``Vec`` only depicts a hexadecimal, byte level representation of the vector data, but a method like ``as_tuple`` allows the viewing of data with different types. One unique aspect of the ``simd`` module is it treats data and memory similar to that of C, where a chunk of 16 bytes could be two 64 bit integers, four 32 bit integers, and so on.
+
+
+Math
+~~~~
+
+The ``simd`` module supports simd operations that involve artihmetic and math on integers and floating point numbers. Operations like ``add`` or ``sub`` work off another vector and a ``width``. The ``width`` indicates the width of the data lane the simd instruction applies to, such as ``8`` for 64 bit operations. Here are a few examples:
+
+.. code:: py
+
+    >>> v = simd.Vec(size=16, repeat_value=5, repeat_size=4)
+    >>> v2 = simd.Vec(size=16, repeat_value=10, repeat_size=4)
+    >>> v.add(v2)
+    Traceback (most recent call last):
+      File "<stdin>", line 1, in <module>
+    TypeError: function missing required argument 'width' (pos 2)
+    >>> v.add(v2, width=4)
+    >>> v.as_tuple(type=int, width=4)
+    (15, 15, 15, 15)
+    >>> v.sub(v2, width=4)
+    >>> v.sub(v2, width=4)
+    >>> v.as_tuple(type=int, width=4)
+    (-5, -5, -5, -5)
+
 

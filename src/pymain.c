@@ -1,7 +1,7 @@
 #include "core_simd_info.h"
 #include "simd_vec.h"
 #include "simd_vec_arith.h"
-#include "simd_vec_filter.h"
+//#include "simd_vec_filter.h"
 #define PY_SSIZE_T_CLEAN
 #include <Python.h>
 #include "structmember.h"

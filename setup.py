@@ -10,8 +10,8 @@ DEFAULT_COMPILER = get_default_compiler()
 # on vector object without needing to check the length/size of it
 pysimd_minimum_align = 8
 
-pysimd_patch_version = 4
-pysimd_minor_version = 0
+pysimd_patch_version = 0
+pysimd_minor_version = 1
 pysimd_major_version = 0
 
 pysimd_version = [pysimd_major_version, 
